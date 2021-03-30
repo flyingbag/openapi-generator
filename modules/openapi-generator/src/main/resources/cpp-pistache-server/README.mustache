@@ -21,14 +21,45 @@ The main folder contains also a file with a main that can be used to start the s
 Of course, is you should customize this file based on your needs
 
 ## Installation
-First of all, you need to download and install the libraries listed [here](#libraries-required).
+We use [Conan](conan.io) to build the server.
+First of all, you need to download and install Conan.
 
-Once the libraries are installed, in order to compile and run the server please follow the steps below:
+Once Conan is installed, you need to create `conanfile.py` and copy below code into it.
+```
+from conans import ConanFile, CMake
+
+
+class ApiServerConan(ConanFile):
+    name = "api-server"
+    # NOTE: This version is going to be overwritten by the CI/CD pipeline
+    version = "0.1"
+    license = "<Put your license here>"
+    author = "<Put your name here> <And your email here>"
+    url = "<Package recipe repository url here, for issues about the package>"
+    description = "<Description of the api server here>"
+    topics = ("<Put some tag here>", "<here>", "<and here>")
+    settings = "os", "compiler", "build_type", "arch"
+    options = {"shared": [True, False], "fPIC": [True, False]}
+    default_options = {"shared": False, "fPIC": True}
+    generators = "cmake"
+    exports_sources = "CMakeLists.txt", "src/*", "include/*"
+    requires = "nlohmann_json/3.9.1", "pistache/cci.20201127", "rapidjson/cci.20200410"
+
+    def config_options(self):
+        if self.settings.os == "Windows":
+            del self.options.fPIC
+
+    def build(self):
+        cmake = CMake(self)
+        cmake.configure(source_folder=".")
+        cmake.build()
+```
+In order to compile and run the server please follow the steps below:
 ```bash
 mkdir build
 cd build
-cmake ..
-make
+conan install ..
+conan build ..
 ```
 
 Once compiled run the server:
